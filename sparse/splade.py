@@ -85,17 +85,22 @@ class Splade:
         
         self.searcher = LuceneImpactSearcher(self.index_path, self.model_name)
         
-    def search(self, query):
+    def search(self, queries):
         if self.searcher is None:
             raise RuntimeError("The index is not yet buit")
         
-        hits = self.searcher.search(query, k=self.top_k)
+        if isinstance(queries, str):
+            queries = [queries]
         
-        results = []
-        for i, hit in enumerate(hits):
-            results.append({
-            "rank": i+1,
-            "docid": hit.docid,
-            "score": hit.score
-            })
-        return results
+        all_results = []
+        for query in queries:
+            hits = self.searcher.search(query, k=self.top_k)
+            results = []
+            for i, hit in enumerate(hits):
+                results.append({
+                "rank": i+1,
+                "docid": hit.docid,
+                "score": hit.score
+                })
+            all_results.append(results)
+        return all_results
