@@ -97,25 +97,31 @@ class HNSW(Dense):
         self.index.add(self.embeddings)
         self.index_time = time.time() - start_time
         
-    def search(self, queries):
+        return self.index_time
+        
+    def search(self, queries=None, query_vectors=None):
         if self.index is None:
             raise ValueError("Index not built. Build it first.")
         
         if isinstance(queries, str):
             queries = [queries]
-            
-        if not queries:
-            return []
+                
         
-        query_vectors = self.model.encode(
-            queries, convert_to_numpy=True
-            ).astype("float32")
-        faiss.normalize_L2(query_vectors) ## Cosine similarity via normalized embeddings and inner product search”
+        if query_vectors is None:
+            if not queries:
+                return []
+            query_vectors = self.model.encode(
+                queries, convert_to_numpy=True
+                ).astype("float32")
+            faiss.normalize_L2(query_vectors) ## Cosine similarity via normalized embeddings and inner product search”
         
+        start = time.time()
         scores, indices = self.index.search(query_vectors, self.top_k)
+        end = time.time()
+        qps = len(query_vectors) / (end - start)
         
         results = []
-        for q_id in range(len(queries)):
+        for q_id in range(len(query_vectors)):
             query_results = [
                 {
                     "query_id": q_id,
@@ -126,7 +132,7 @@ class HNSW(Dense):
                 for rank, i in enumerate(indices[q_id])
             ]
             results.append(query_results)
-        return results
+        return results, qps
 
         
         
