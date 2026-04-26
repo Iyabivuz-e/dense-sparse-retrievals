@@ -6,23 +6,13 @@ from sentence_transformers import SentenceTransformer
 
 
 class Dense:
-    def __init__(self, model_name, documents_path, top_k=10):
+    def __init__(self, embeddings, model_name, top_k=10):
         self.model = SentenceTransformer(model_name)
         self.top_k = top_k
         self.M = 16
-        self.document_path = documents_path
-        
-        documents = []
-        with open(documents_path, 'r') as f:
-            for line in f:
-                doc = json.loads(line)
-                documents.append(doc["text"])
-            
-
-        self.embeddings = self.model.encode(
-            documents, convert_to_numpy=True
-        ).astype("float32")
-        faiss.normalize_L2(self.embeddings)
+        self.Q_M = 8
+        self.n_bits = 8
+        self.embeddings = embeddings
         self.index = None
         self.index_time = None
         
@@ -33,16 +23,22 @@ class FlatIndex(Dense):
     which is standard practice for dense retrieval models, 
     while keeping the comparison between flat and HNSW consistent.”
     """
-    def __init__(self, model_name, documents_path, top_k=10):
-        super().__init__(model_name, documents_path, top_k)
+    def __init__(self, embeddings,model_name, top_k=10):
+        super().__init__(embeddings,model_name, top_k)
         
-    def build_index(self):
+    def build_index(self, quantize:bool = False):
         dim = self.embeddings.shape[1]
         start_time = time.time()
         
-        self.index = faiss.IndexFlatIP(dim)        
-        self.index.add(self.embeddings)
-        
+        if quantize:
+            self.index = faiss.IndexPQ(dim, self.Q_M, self.n_bits)
+            self.index.train(self.embeddings)
+            self.index.add(self.embeddings)
+        else:
+            
+            self.index = faiss.IndexFlatIP(dim)        
+            self.index.add(self.embeddings)
+            
         self.index_time = time.time() - start_time
         return self.index_time
         
@@ -82,19 +78,29 @@ class FlatIndex(Dense):
           
 
 class HNSW(Dense):
-    def __init__(self, model_name, documents_path, top_k=10):
-        super().__init__(model_name, documents_path, top_k)
+    def __init__(self, embeddings,model_name, top_k=10):
+        super().__init__( embeddings, model_name, top_k)
         
-    def build_index(self):
+    def build_index(self, quantize:bool = False):
         dim = self.embeddings.shape[1]
         start_time = time.time()
         
-        self.index = faiss.IndexHNSWFlat(dim, self.M, faiss.METRIC_INNER_PRODUCT)
-        # Some configurations
-        self.index.hnsw.efSearch = 100
-        self.index.hnsw.efConstruction = 100
-        
-        self.index.add(self.embeddings)
+        if quantize:
+            self.index = faiss.IndexHNSWPQ(dim, self.M, self.Q_M, self.n_bits, faiss.METRIC_INNER_PRODUCT)
+            self.index.hnsw.efSearch = 100
+            self.index.hnsw.efConstruction = 100
+            
+            self.index.train(self.embeddings)
+            self.index.add(self.embeddings)
+            
+        else:
+            
+            self.index = faiss.IndexHNSWFlat(dim, self.M, faiss.METRIC_INNER_PRODUCT)
+            # Some configurations
+            self.index.hnsw.efSearch = 100
+            self.index.hnsw.efConstruction = 100
+            
+            self.index.add(self.embeddings)
         self.index_time = time.time() - start_time
         
         return self.index_time
