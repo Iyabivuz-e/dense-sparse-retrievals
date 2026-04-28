@@ -3,7 +3,7 @@ import subprocess
 from transformers import AutoTokenizer, AutoModelForMaskedLM
 import torch
 import json
-
+import time
 
 class Splade:
     def __init__(self, index_path, model, top_k=10):
@@ -11,6 +11,7 @@ class Splade:
         self.top_k=top_k
         self.model_name=model
         self.searcher = None
+        self.index_time = None
         self.tokenizer = AutoTokenizer.from_pretrained(model)
         self.model=AutoModelForMaskedLM.from_pretrained(model)
         self.model.eval()
@@ -70,6 +71,7 @@ class Splade:
         
         
     def index(self, input_path):
+        start = time.time()
         results = subprocess.run(f"""
          python -m pyserini.index.lucene \
             --collection JsonVectorCollection \
@@ -79,28 +81,32 @@ class Splade:
             --threads 4 \
             --impact --pretokenized
         """, shell=True, capture_output=True, text=True)
-        
+        self.index_time = time.time() - start
         if results.returncode != 0:
             raise RuntimeError(f"Indexing failed with return code {results.returncode}")
         
-        self.searcher = LuceneImpactSearcher(self.index_path, self.model_name)
+        self.searcher = LuceneImpactSearcher(self.index_path, query_encoder=self.model_name)
         
+        return self.index_time
+    
     def search(self, queries):
         if self.searcher is None:
             raise RuntimeError("The index is not yet buit")
         
         if isinstance(queries, str):
             queries = [queries]
+             
         
+        start = time.time()
+        hits = [self.searcher.search(query, k=self.top_k) for query in queries]
+        end = time.time()
+        
+        qps = len(queries) / (end - start)
+            
         all_results = []
-        for query in queries:
-            hits = self.searcher.search(query, k=self.top_k)
-            results = []
-            for i, hit in enumerate(hits):
-                results.append({
-                "rank": i+1,
-                "docid": hit.docid,
-                "score": hit.score
-                })
+        for hits in hits:
+            results = [{"rank": i+1, "docid": hit.docid, "score": hit.score}
+                    for i, hit in enumerate(hits)]
             all_results.append(results)
-        return all_results
+    
+        return all_results, qps

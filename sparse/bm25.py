@@ -1,17 +1,20 @@
 from pyserini.search.lucene import LuceneSearcher
 import os
 import subprocess
+import time
 
 class BM25Retrieval:
     def __init__(self, index_path, top_k=10):
         self.index_path = index_path # path for the invented index
         self.top_k = top_k
         self.searcher = None
+        self.index_time = None
     
     # This method builds the inverted index with the CLI from pyserini library
     def index(self, input_path):
         # input_path = the folder containing data
         # index_path = the folder that will contain the inverted index
+        start = time.time()
         result = subprocess.run(f"""
         python -m pyserini.index.lucene \
       --collection JsonCollection \
@@ -21,14 +24,14 @@ class BM25Retrieval:
       --threads 4 \
       --storePositions --storeDocvectors --storeRaw
     """, shell=True, capture_output=True, text=True)
-        
+        self.index_time = time.time() - start
     
         if result.returncode != 0:
             raise RuntimeError(f"Indexing failed with return code {result.returncode}")
-
         
         self.searcher = LuceneSearcher(self.index_path)
         
+        return self.index_time
     
     
     def search(self, queries):
@@ -40,7 +43,9 @@ class BM25Retrieval:
             
         all_results = []
         for query in queries:
+            start = time.time()
             hits = self.searcher.search(query, self.top_k)
+            end = time.time()
             results = []
             for i, hit in enumerate(hits):
                 results.append({
@@ -49,4 +54,5 @@ class BM25Retrieval:
                 "score": hit.score
                 })
             all_results.append(results)
-        return all_results
+        qps = len(queries) / (end - start)
+        return all_results, qps

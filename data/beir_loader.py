@@ -3,7 +3,7 @@ from beir import util
 # from beir.datasets.data_loader import GenericDataLoader
 
 def download_dataset():
-    dataset = "nfcorpus"
+    dataset = "fiqa"
     url = "https://public.ukp.informatik.tu-darmstadt.de/thakur/BEIR/datasets/{}.zip".format(dataset)
     output_dir = os.path.join(os.getcwd(), "datasets")
     data_path = util.download_and_unzip(url=url, out_dir=output_dir)
