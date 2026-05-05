@@ -1,0 +1,4 @@
+beir>=2.2.0
+faiss-cpu>=1.13.2
+ipykernel>=7.2.0
+pyserini>=1.6.0
