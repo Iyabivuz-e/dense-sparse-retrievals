@@ -14,3 +14,5 @@ wheels/
 ./steps.py
 /indexes
 notes.md
+./splade_vectors.jsonl
+splade_vectors.jsonl
