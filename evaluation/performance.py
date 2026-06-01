@@ -1,1 +1,0 @@
-## QPS, indexing time

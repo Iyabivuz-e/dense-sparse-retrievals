@@ -1,4 +1,3 @@
-## ndcg@10
 from beir.retrieval.evaluation import EvaluateRetrieval
 
 def compute_ndcg(qrels, results):

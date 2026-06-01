@@ -1,0 +1,14 @@
+[
+  {
+    "dataset": "nfcorpus",
+    "method": "bm25",
+    "trial": 0,
+    "num_docs": 3633,
+    "num_queries": 323,
+    "index_time_s": 2.0991,
+    "qps": 103.9448,
+    "NDCG@1": 0.4257,
+    "NDCG@10": 0.32178,
+    "NDCG@100": 0.27392
+  }
+]

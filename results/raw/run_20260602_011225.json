@@ -1,0 +1,14 @@
+[
+  {
+    "dataset": "nfcorpus",
+    "method": "splade",
+    "trial": 0,
+    "num_docs": 3633,
+    "num_queries": 323,
+    "index_time_s": 3.4649,
+    "qps": 14.8623,
+    "NDCG@1": 0.48297,
+    "NDCG@10": 0.34731,
+    "NDCG@100": 0.30777
+  }
+]

@@ -1,0 +1,2 @@
+dataset,method,trial,num_docs,num_queries,index_time_s,qps,NDCG@1,NDCG@10,NDCG@100
+nfcorpus,splade,0,3633,323,3.4649,14.8623,0.48297,0.34731,0.30777
