@@ -12,6 +12,7 @@ EMBEDDINGS_CACHE_DIR = os.path.join(ROOT_DIR, "embeddings_cache")
 
 #  Environment (macOS JVM fix) 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
+os.environ["_JAVA_OPTIONS"] = "-Xmx8g" ## We give java 8GB of space
 # we set JAVA dynamically find the path to Java 21 on macOS
 try:
     java_home = subprocess.check_output(['/usr/libexec/java_home', '-v', '21']).decode('utf-8').strip()
@@ -21,7 +22,7 @@ except subprocess.CalledProcessError:
     print("Java 21 not found on your system! Please run 'brew install openjdk@21' in your terminal.")
     
 #  Datasets 
-DATASETS = ["nfcorpus", "fiqa", "nq", "quora"]
+DATASETS = ["nfcorpus", "fiqa", "quora", "nq"]
 
 # Methods 
 METHODS = ["bm25", "splade", "flat", "flat_quantized", "hnsw", "hnsw_quantized"]
