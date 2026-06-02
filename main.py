@@ -2,11 +2,11 @@
 Paper replicate: "Operational Advice for Dense and Sparse Retrievers" (Jimmy Lin)
 
 Usage:
-    python run_experiments.py                                      # Run ALL
-    python run_experiments.py --datasets nfcorpus                  # One dataset
-    python run_experiments.py --datasets nfcorpus fiqa             # Two datasets
-    python run_experiments.py --methods bm25 splade                # Specific methods
-    python run_experiments.py --datasets nfcorpus --methods bm25   # Smoke test
+    python main.py                                      # Run ALL
+    python main.py --datasets nfcorpus                  # One dataset
+    python main.py --datasets nfcorpus fiqa             # Two datasets
+    python main.py --methods bm25 splade                # Specific methods
+    python main.py --datasets nfcorpus --methods bm25   # Smoke test
 """
 
 import argparse
